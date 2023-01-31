@@ -36,6 +36,7 @@
         function chkNewScan() {
           countTodayScan();
           setTimeout(chkNewScan, 1000);
+          reloadTable();
         }
 
         function countTodayScan() {

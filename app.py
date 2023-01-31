@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, Response
+from flask import Flask, render_template, request, redirect, url_for, Response, jsonify
 import mysql.connector
 import module as md
+import cv2
 
 app = Flask(__name__)
 
@@ -42,10 +43,10 @@ def addprsn_submit():
     prsrole = request.form.get('optrole')
 
     cursor.execute("""
-    INSERT INTO `prs_mstr`
-    (`prs_nbr`, `prs_name`, `prs_role`)
-    VALUES
-    ('{}', '{}', '{}')
+        INSERT INTO `prs_mstr`
+        (`prs_nbr`, `prs_name`, `prs_role`)
+        VALUES
+        ('{}', '{}', '{}')
     """.format(prsnbr, addprsn_submit.prsname, prsrole))
 
     db.commit()
@@ -60,13 +61,14 @@ def capture_photo_page(prs):
 @app.route('/vidfeed_dataset/<nbr>')
 def vidfeed_dataset(nbr):
     # Video streaming route. Put this in the src attribute of an img tag
-    return Response(md.capture_photo(addprsn_submit.prsname), mimetype='multipart/x-mixed-replace; boundary=frame')
+    # return Response(md.capture_photo(addprsn_submit.prsname), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(md.capture_photo(addprsn_submit.prsname).tobytes(), mimetype='image/jpeg')
 
 
 @app.route('/video_feed')
 def video_feed():
     # Video streaming route. Put this in the src attribute of an img tag
-    return Response(md.findEncodings(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(md.recognition(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route('/fr_page')
@@ -77,8 +79,32 @@ def fr_page():
                    " where a.accs_date = curdate() "
                    " order by 1 desc")
     data = cursor.fetchall()
-
     return render_template('fr_page.html', data=data)
+
+
+@app.route('/countTodayScan')
+def countTodayScan():
+    cursor.execute("""
+                SELECT COUNT(*)
+                FROM accs_hist
+                WHERE accs_date = curdate() 
+                """)
+    row = cursor.fetchone()
+    rowcount = row[0]
+    return jsonify({'rowcount': rowcount})
+
+
+@app.route('/loadData', methods=['GET', 'POST'])
+def loadData():
+    cursor.execute("""
+        SELECT a.accs_prsn, b.prs_name, b.prs_role, date_format(a.accs_added, '%H:%i:%s')
+        FROM accs_hist a 
+        LEFT JOIN prs_mstr b ON a.accs_prsn = b.prs_nbr 
+        WHERE a.accs_date = curdate() 
+        ORDER BY 1 DESC
+    """)
+    data = cursor.fetchall()
+    return jsonify(response=data)
 
 
 if __name__ == "__main__":
