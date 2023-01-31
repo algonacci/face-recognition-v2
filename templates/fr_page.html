@@ -13,7 +13,7 @@
         </div>
         <div class="col-md-4" style="height: 500px; overflow-y: auto">
           <h3>Today Scan</h3>
-          <table class="table">
+          <!-- <table class="table">
             <thead>
               <tr>
                 <th>Name</th>
@@ -22,7 +22,8 @@
               </tr>
             </thead>
             <tbody id="scandata"></tbody>
-          </table>
+          </table> -->
+          {{ table | safe }}
         </div>
       </div>
     </div>
@@ -36,7 +37,8 @@
         function chkNewScan() {
           countTodayScan();
           setTimeout(chkNewScan, 1000);
-          reloadTable();
+          // reloadTable();
+          // setTimeout(reloadTable, 1000);
         }
 
         function countTodayScan() {
@@ -63,30 +65,45 @@
             url: "/loadData",
             type: "GET",
             dataType: "json",
-            success: function (response) {
-              var tr = $("#scandata");
-              tr.empty();
+            // success: function (response) {
+            //   var tr = $("#scandata");
+            //   tr.empty();
+            //   let hour = "";
+            //   $.each(response, function (index, item) {
+            //     if (item.length > 0) {
+            //       for (let i = 0; i < item.length; i++) {
+            //         if (hour !== item[i][3].split(":")[0]) {
+            //           hour = item[i][3].split(":")[0];
+            //           tr.append(
+            //             "<tr>" +
+            //               "<td>" +
+            //               item[i][1] +
+            //               "</td>" +
+            //               "<td>" +
+            //               item[i][2] +
+            //               "</td>" +
+            //               "<td>" +
+            //               item[i][3] +
+            //               "</td>" +
+            //               "</tr>"
+            //           );
+            //         }
+            //       }
+            //     }
+            //   });
+            // },
 
-              $.each(response, function (index, item) {
-                if (item.length > 0) {
-                  for (let i = 0; i < item.length; i++) {
-                    tr.append(
-                      "<tr>" +
-                        "<td>" +
-                        item[i][1] +
-                        "</td>" +
-                        "<td>" +
-                        item[i][2] +
-                        "</td>" +
-                        "<td>" +
-                        item[i][3] +
-                        "</td>" +
-                        "</tr>"
-                    );
-                  }
-                }
-              });
+            success: function (response) {
+              var table = $("#scandata");
+              table.empty();
+              for (let i = 0; i < Object.keys(response.Name).length; i++) {
+                var row = $("<tr></tr>").appendTo(table);
+                $("<td>" + response.Name[i] + "</td>").appendTo(row);
+                $("<td>" + response.Role[i] + "</td>").appendTo(row);
+                $("<td>" + response.Time[i] + "</td>").appendTo(row);
+              }
             },
+
             error: function (result) {
               console.log("no result!");
             },

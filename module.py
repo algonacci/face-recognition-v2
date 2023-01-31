@@ -1,10 +1,11 @@
 import os
-from datetime import datetime
 import face_recognition
 import cv2
 import numpy as np
 import mysql.connector
 from datetime import date
+from datetime import datetime
+import uuid
 
 path = 'static/uploads'
 images = []
@@ -37,31 +38,47 @@ def findEncodings(images):
 
 
 def markAttendance(name):
-    # with open('Attendance.csv', 'r+') as f:
-    #     myDataList = f.readlines()
-    #     nameList = []
-    #     for line in myDataList:
-    #         entry = line.split(',')
-    #         nameList.append(entry[0])
-    #     if name not in nameList:
-    #         now = datetime.now()
-    #         dtString = now.strftime('%H:%M:%S')
-    #         f.writelines(f'\n{name},{dtString}')
+    with open('Attendance.csv', 'r+') as f:
+        myDataList = f.readlines()
+        nameList = []
+        for line in myDataList:
+            entry = line.split(',')
+            nameList.append(entry[0])
+        if name not in nameList:
+            now = datetime.now()
+            dtString = now.strftime('%H:%M:%S')
+            f.writelines(f'\n{name},{dtString}')
 
-    cursor.execute("""
-        INSERT INTO `accs_hist` (accs_date, accs_prsn) 
-        VALUES
-        ('{}', '{}')
-        """.format(str(date.today()), name))
-    db.commit()
+    # cursor.execute("select a.img_person, b.prs_name, b.prs_role "
+    #                "  from img_dataset a "
+    #                "  left join prs_mstr b on a.img_person = b.prs_nbr "
+    #                " where img_id = " + str(id))
+    # row = cursor.fetchone()
+
+    # global pnbr
+    # if row is not None:
+    #     pnbr = row[0]
+
+    # cursor.execute("""
+    #     INSERT INTO `accs_hist` (accs_date, accs_prsn)
+    #     VALUES
+    #     ('{}', '{}')
+    #     """.format(str(date.today()), 102))
+    # db.commit()
 
 
-def capture_photo(name):
+def capture_photo(name, nbr):
     cap = cv2.VideoCapture(0)
     ret, frame = cap.read()
     cap.release()
     ret, jpeg = cv2.imencode('.jpg', frame)
     cv2.imwrite("static/uploads/"+name+".jpg", frame)
+    cursor.execute("""
+    INSERT INTO `img_dataset` (`img_id`, `img_person`)
+    VALUES
+    ('{}', '{}')
+    """.format(uuid.uuid4(), nbr))
+    db.commit()
     return jpeg
 
 
@@ -97,6 +114,7 @@ def recognition():
                 cv2.putText(frame, name, (x1+6, y2-6),
                             cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 2)
                 markAttendance(name)
+
         if not success:
             break
         else:

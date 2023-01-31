@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, Response, jsonify
 import mysql.connector
 import module as md
-import cv2
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -60,14 +60,11 @@ def capture_photo_page(prs):
 
 @app.route('/vidfeed_dataset/<nbr>')
 def vidfeed_dataset(nbr):
-    # Video streaming route. Put this in the src attribute of an img tag
-    # return Response(md.capture_photo(addprsn_submit.prsname), mimetype='multipart/x-mixed-replace; boundary=frame')
-    return Response(md.capture_photo(addprsn_submit.prsname).tobytes(), mimetype='image/jpeg')
+    return Response(md.capture_photo(addprsn_submit.prsname, nbr).tobytes(), mimetype='image/jpeg')
 
 
 @app.route('/video_feed')
 def video_feed():
-    # Video streaming route. Put this in the src attribute of an img tag
     return Response(md.recognition(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
@@ -79,7 +76,9 @@ def fr_page():
                    " where a.accs_date = curdate() "
                    " order by 1 desc")
     data = cursor.fetchall()
-    return render_template('fr_page.html', data=data)
+    table = pd.read_csv("Attendance.csv")
+    table = table.to_html(classes='table table-hover')
+    return render_template('fr_page.html', data=data, table=table)
 
 
 @app.route('/countTodayScan')
@@ -96,14 +95,27 @@ def countTodayScan():
 
 @app.route('/loadData', methods=['GET', 'POST'])
 def loadData():
-    cursor.execute("""
-        SELECT a.accs_prsn, b.prs_name, b.prs_role, date_format(a.accs_added, '%H:%i:%s')
-        FROM accs_hist a 
-        LEFT JOIN prs_mstr b ON a.accs_prsn = b.prs_nbr 
-        WHERE a.accs_date = curdate() 
-        ORDER BY 1 DESC
-    """)
-    data = cursor.fetchall()
+    data = pd.read_csv("Attendance.csv")
+    data = data.to_json()
+    print(data)
+    # db = mysql.connector.connect(
+    #     host="localhost",
+    #     user="root",
+    #     passwd="",
+    #     database="attendance_v2",
+    # )
+
+    # cursor = db.cursor()
+
+    # cursor.execute("""
+    #     SELECT DISTINCT a.accs_prsn, b.prs_name, b.prs_role, date_format(a.accs_added, '%H:%i:%s')
+    #     FROM accs_hist a
+    #     LEFT JOIN prs_mstr b ON a.accs_prsn = b.prs_nbr
+    #     WHERE a.accs_date = curdate()
+    #     ORDER BY 1 DESC
+    # """)
+    # data = cursor.fetchall()
+
     return jsonify(response=data)
 
 
