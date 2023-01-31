@@ -34,3 +34,11 @@ def markAttendance(name):
             now = datetime.now()
             dtString = now.strftime('%H:%M:%S')
             f.writelines(f'\n{name},{dtString}')
+
+
+def capture_photo(name):
+    cap = cv2.VideoCapture(0)
+    ret, frame = cap.read()
+    cap.release()
+    cv2.imwrite(name+" .jpg", frame)
+    print("Photo captured and saved as captured_photo.jpg")
