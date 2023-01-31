@@ -8,6 +8,7 @@ path = 'static/uploads'
 images = []
 classNames = []
 myList = os.listdir(path)
+
 for cls in myList:
     curImg = cv2.imread(f'{path}/{cls}')
     images.append(curImg)
@@ -40,5 +41,5 @@ def capture_photo(name):
     cap = cv2.VideoCapture(0)
     ret, frame = cap.read()
     cap.release()
-    cv2.imwrite(name+" .jpg", frame)
+    cv2.imwrite("static/uploads/"+name+".jpg", frame)
     print("Photo captured and saved as captured_photo.jpg")
