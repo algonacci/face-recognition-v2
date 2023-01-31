@@ -77,7 +77,7 @@ def fr_page():
                    " order by 1 desc")
     data = cursor.fetchall()
     table = pd.read_csv("Attendance.csv")
-    table = table.to_html(classes='table table-hover')
+    table = table.to_html(classes='table table-hover text-center', index=False)
     return render_template('fr_page.html', data=data, table=table)
 
 
