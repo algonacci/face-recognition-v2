@@ -49,22 +49,12 @@ def markAttendance(name):
             dtString = now.strftime('%H:%M:%S')
             f.writelines(f'\n{name},{dtString}')
 
-    # cursor.execute("select a.img_person, b.prs_name, b.prs_role "
-    #                "  from img_dataset a "
-    #                "  left join prs_mstr b on a.img_person = b.prs_nbr "
-    #                " where img_id = " + str(id))
-    # row = cursor.fetchone()
-
-    # global pnbr
-    # if row is not None:
-    #     pnbr = row[0]
-
-    # cursor.execute("""
-    #     INSERT INTO `accs_hist` (accs_date, accs_prsn)
-    #     VALUES
-    #     ('{}', '{}')
-    #     """.format(str(date.today()), 102))
-    # db.commit()
+    cursor.execute("""
+        INSERT INTO `accs_hist` (accs_date, accs_prsn)
+        VALUES
+        ('{}', '{}')
+        """.format(str(date.today()), 102))
+    db.commit()
 
 
 def capture_photo(name, nbr):
